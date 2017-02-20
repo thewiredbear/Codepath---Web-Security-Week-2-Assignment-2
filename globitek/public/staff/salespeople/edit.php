@@ -27,7 +27,7 @@ if(is_post_request()) {
     redirect_to('show.php?id=' . $salesperson['id']);
   } else {
     $errors = $result;
-    echo dislpay_errors($errors);
+    echo display_errors($errors);
   }
 }
 

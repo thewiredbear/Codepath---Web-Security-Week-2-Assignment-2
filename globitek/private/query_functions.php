@@ -90,9 +90,11 @@
     $name=htmlspecialchars($state["name"]);
     $code=htmlspecialchars($state["code"]);
     $country_id=htmlspecialchars($state["country_id"]);
-    $sql = "INSERT into states". " (name,code,country_id) "." VALUES('$name','$code','$country_id')"; // TODO add SQL
+    $sql = $db->prepare("INSERT into states (name,code,country_id) VALUES(?,?,?)"); // TODO add SQL
+    $sql->bind_param('sss',$name,$code,$country_id);
     // For INSERT statments, $result is just true/false
-    $result = db_query($db, $sql);
+    //$result = db_query($db, $sql);
+    $result = $sql->execute();
     if($result) {
       return true;
     } else {
@@ -118,9 +120,11 @@
     $code=htmlspecialchars($state["code"]);
     $country_id=htmlspecialchars($state["country_id"]);
     $id=htmlspecialchars($state["id"]);
-    $sql = "UPDATE states SET name='$name',code='$code',country_id='$country_id' WHERE id='$id' "; // TODO add SQL
+    $sql = $db->prepare("UPDATE states SET name=?,code=?,country_id=? WHERE id=? "); // TODO add SQL
+    $sql->bind_param("ssdd",$name,$code,$country_id,$id);
     // For update_state statments, $result is just true/false
-    $result = db_query($db, $sql);
+    //$result = db_query($db, $sql);
+    $result = $sql->execute();
     if($result) {
       return true;
     } else {
@@ -179,15 +183,15 @@
       }
     }
 
-    if(is_blank($territory["code"])){
+    if(is_blank($territory["state_id"])){
       $errors[]="Territory code cannot be blank";
     }else{
       //MY CUSTOM VALIDATION
-      if(has_length($territory["code"],['min' => 2,'max' => 3])==false){
-        $errors[]="The length for territory name has to between 2 and 5";
-      }
+      // if(has_length($territory["state_id"],['min' => 2,'max' => 3])==false){
+      //   $errors[]="The length for territory name has to between 2 and 5";
+      // }
       //MY CUSTOM VALIDATION
-      if(preg_match("/[^A-Z]/", $territory["code"])){
+      if(preg_match("/[^0-9]/", $territory["state_id"])){
         $errors[]="The territory code can only have capital letters";
       }
     }
@@ -209,9 +213,11 @@
     $name=htmlspecialchars($territory["name"]);
     $state_id=htmlspecialchars($territory["state_id"]);
     $position=htmlspecialchars($territory["position"]);
-    $sql = "INSERT into territories (name,state_id,position) VALUES('$name','$state_id','$position')"; // TODO add SQL
+    $sql = $db->prepare("INSERT into territories (name,state_id,position) VALUES(?,?,?)"); // TODO add SQL
+    $sql->bind_param("ssd",$name,$state_id,$position);
     // For INSERT statments, $result is just true/false
-    $result = db_query($db, $sql);
+    //$result = db_query($db, $sql);
+    $result = $sql->execute();
     if($result) {
       return true;
     } else {
@@ -293,11 +299,11 @@
       $errors[]="First name cannot be blank";
     }else{
       //MY CUSTOM VALIDATION
-      if(has_length($salesperson["name"],['min' => 2,'max' => 255])==false){
+      if(has_length($salesperson["first_name"],['min' => 2,'max' => 255])==false){
         $errors[]="The length for first name has to between 2 and 255";
       }
       //MY CUSTOM VALIDATION
-      if(preg_match("/[^a-zA-Z]/",$salesperson["name"])){
+      if(preg_match("/[^a-zA-Z]/",$salesperson["first_name"])){
         $errors[]="The first name can only have letters";
       }
     }
@@ -319,16 +325,15 @@
       $errors[]="The number cannot be empty";
     }else{
       if(has_length($salesperson["phone"],['min'=> 2,'max'=>255])==false){
-        errors[]="The length for the phone number has to be between 2 and 255";
+        $errors[]="The length for the phone number has to be between 2 and 255";
       }
       if(preg_match("/[^0-9\(\)-]/", $salesperson["phone"])){
-        $errors[]="Phone number can only have digits (, ) and -";
+        $errors[]="Phone number can only have digits and a few special characters";
       }
     }
     
 
     return $errors;
-
   }
 
   // Add a new salesperson to the table
@@ -370,14 +375,14 @@
       return $errors;
     }
 
-    echo $salesperson["last_name"];
+    //echo $salesperson["last_name"];
     $firstname = htmlspecialchars($salesperson["first_name"]);
     $lastname = htmlspecialchars($salesperson["last_name"]);
     $email = htmlspecialchars($salesperson["email"]);
     $phone = htmlspecialchars($salesperson["phone"]);
     $id = htmlspecialchars($salesperson["id"]);
     //$sql = "UPDATE salespeople SET first_name=" . "'$firstname'" . ", last_name="."'$lastname'".", email="."'$email'".", phone="."'$phone'"." WHERE id="."'$id'"." LIMIT 1 ;"; // TODO add SQL
-    $sql = "UPDATE salespeople SET first_name = '$firstname' , last_name = '$lastname' , email = '$email' , phone = 'phone' WHERE id = '$id' ";
+    $sql = "UPDATE salespeople SET first_name = '$firstname' , last_name = '$lastname' , email = '$email' , phone = '$phone' WHERE id = '$id' ";
     // For update_salesperson statments, $result is just true/false
     $result = db_query($db, $sql);
     if($result) {
@@ -450,6 +455,9 @@
     } elseif (!has_length($user['username'], array('max' => 255))) {
       $errors[] = "Username must be less than 255 characters.";
     }
+    if(preg_match("/[^a-zA-Z0-9_]/", $user["username"])){
+        $errors[]="Username can only have letters, spaces, symbols:_";
+    }
     return $errors;
   }
 
@@ -503,6 +511,12 @@
     if (!empty($errors)) {
       return $errors;
     }
+
+    $firstname = htmlspecialchars($user["first_name"]);
+    $lastname = htmlspecialchars($user["last_name"]);
+    $email = htmlspecialchars($user["email"]);
+    $username = htmlspecialchars($user["username"]);
+    $id = htmlspecialchars($user["id"]);
 
     $sql = "UPDATE users SET ";
     $sql .= "first_name='" . $user['first_name'] . "', ";

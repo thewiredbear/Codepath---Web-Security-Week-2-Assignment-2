@@ -1,6 +1,6 @@
 <?php
 require_once('../../../private/initialize.php');
-require_once('.././../private/functions.php');
+require_once('../../../private/functions.php');
 
 // Set default values for all variables the page needs.
 $errors = array();
